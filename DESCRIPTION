@@ -1,0 +1,13 @@
+Package: supernatural
+Type: Package
+Title: Data package about the TV show Supernatural
+Version: 0.1.0
+Author: c(
+    person("Emmanuelle", "Rodrigues Nunes", email="emmanuellernunes@gmail.com", role = c("aut", "cre"))
+    )
+Maintainer: Emmanuelle Rodrigues Nunes <emmanuellernunes@gmail.com>
+Description: Data about Supernatural ready for analysis. 
+  This includes information about the seasons, episodes and all characters.
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/EmmanuelleRN/supernatural
