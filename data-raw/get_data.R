@@ -30,6 +30,10 @@ awards_page <- "https://en.wikipedia.org/wiki/List_of_awards_and_nominations_rec
 awards_page <- read_html(awards_page)
 awards_tbl <- html_nodes(awards_page, "table")
 
+characters_page <- "https://en.wikipedia.org/wiki/List_of_Supernatural_characters"
+characters_page <- read_html(characters_page)
+characters_tbl <- html_nodes(characters_page, "table")
+
 # Extract synopsis
 synopsis <- html_table(tbls[[1]], fill = TRUE) # Synopsis
 
@@ -59,6 +63,12 @@ awards <- lapply(3:17, function(x){
       x == 16 ~ "Young Artist Awards",
       x == 17 ~ "Hugo Awards"
     ))
+}) %>%
+  do.call(rbind, .)
+
+# Extract characters list
+characters_list <- lapply(2:4, function(x){
+  html_table(characters_tbl[[x]], fill = TRUE)
 }) %>%
   do.call(rbind, .)
 
