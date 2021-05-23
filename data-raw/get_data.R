@@ -68,11 +68,11 @@ awards <- lapply(3:17, function(x){
 
 # Extract characters list
 characters_list <- lapply(2:4, function(x){
-  html_table(characters_tbl[[x]], fill = TRUE)
+  html_table(characters_tbl[[x]], fill = TRUE)[1:17]
 }) %>%
   do.call(rbind, .)
 
-# Clean films -------------------------------------------------------------
+# Clean tables -------------------------------------------------------------
 
 # Steps
 # - Rename and clean column names
@@ -82,6 +82,7 @@ characters_list <- lapply(2:4, function(x){
 # - Process release date into dates
 # - Remove duplicated and extra columns
 
+# Clean synopsis
 synopsis <- synopsis %>%
   janitor::clean_names() %>%
   # Remove first line as it is still part of the header
@@ -120,7 +121,6 @@ synopsis <- synopsis %>%
   })
 
 # Clean list of episodes
-
 list_of_episodes <- list_of_episodes %>%
   janitor::clean_names() %>%
   # Remove quotes from Title
@@ -156,6 +156,21 @@ list_of_episodes <- list_of_episodes %>%
   select(season, no_overall, no_inseason, title, directed_by, written_by, story_by, teleplay_by,
          original_air_date, u_s_viewers_millions)
 
+# Clean awards
 awards <- awards %>%
   # Clean column names
   janitor::clean_names()
+
+# Clean characters list
+characters_list <- characters_list %>%
+  janitor::clean_names() %>%
+  # Remove repetitive information from row 1 and header
+  dplyr::slice(-1) %>%
+  tidyr::pivot_longer(-c(actor, character), names_to = 'season', values_to = 'role') %>%
+  # clean the season string to have just the season number
+  dplyr::mutate(season = ifelse(grepl("\\d", season), stringr::str_sub(season, 9, -1), 1)) %>%
+  # remove special * character
+  dplyr::mutate_at(.vars = c('actor', 'character'),
+                              .funs = gsub,
+                              pattern = "\\*{1,}",
+                              replacement = "\\1")
