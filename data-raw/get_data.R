@@ -8,6 +8,7 @@ library(lubridate)
 library(stringr)
 library(progress)
 library(readr)
+library(data.table)
 
 # Data wrangling packages
 library(dplyr)
@@ -34,6 +35,11 @@ characters_page <- "https://en.wikipedia.org/wiki/List_of_Supernatural_character
 characters_page <- read_html(characters_page)
 characters_tbl <- html_nodes(characters_page, "table")
 
+#### TO DO ####
+species_page <- "https://supernatural.fandom.com/wiki/Category:Species"
+species_page <- read_html(species_page)
+#### To DO ####
+
 # Extract synopsis
 synopsis <- html_table(tbls[[1]], fill = TRUE) # Synopsis
 
@@ -41,7 +47,7 @@ synopsis <- html_table(tbls[[1]], fill = TRUE) # Synopsis
 list_of_episodes <- lapply(1:15,
                            function(x) html_table(tbls[[x + 1]], fill = TRUE) %>%
                              mutate(season = x)) %>%
-  do.call(rbind, .)
+  data.table::rbindlist(.)
 
 # Extract awards
 awards <- lapply(3:17, function(x){
@@ -64,13 +70,13 @@ awards <- lapply(3:17, function(x){
       x == 17 ~ "Hugo Awards"
     ))
 }) %>%
-  do.call(rbind, .)
+  data.table::rbindlist(.)
 
 # Extract characters list
 characters_list <- lapply(2:4, function(x){
   html_table(characters_tbl[[x]], fill = TRUE)[1:17]
 }) %>%
-  do.call(rbind, .)
+  data.table::rbindlist(.)
 
 # Clean tables -------------------------------------------------------------
 
@@ -84,7 +90,10 @@ characters_list <- lapply(2:4, function(x){
 
 # Clean synopsis
 synopsis <- synopsis %>%
+
+  # Clean column names
   janitor::clean_names() %>%
+
   # Remove first line as it is still part of the header
   slice(-1) %>%
 
@@ -122,7 +131,13 @@ synopsis <- synopsis %>%
 
 # Clean list of episodes
 list_of_episodes <- list_of_episodes %>%
-  janitor::clean_names() %>%
+
+  # Clean column names
+  janitor::clean_names(abbreviations = "U.S.") %>%
+
+  # Rename u.s. to us_
+  rename(us_viewers_millions = u.s.viewers_millions) %>%
+
   # Remove quotes from Title
   mutate(title = stringr::str_replace_all(title, '\"', "")) %>%
 
@@ -163,10 +178,16 @@ awards <- awards %>%
 
 # Clean characters list
 characters_list <- characters_list %>%
+
+  # Clean column names
   janitor::clean_names() %>%
-  # Remove repetitive information from row 1 and header
-  dplyr::slice(-1) %>%
+
+  # Each information in a row
   tidyr::pivot_longer(-c(actor, character), names_to = 'season', values_to = 'role') %>%
+
+  # Remove rows that have repetitive information with the title
+  filter(actor != 'Actor') %>%
+
   # clean the season string to have just the season number
   dplyr::mutate(season = ifelse(grepl("\\d", season), stringr::str_sub(season, 9, -1), 1)) %>%
   # remove special * character
