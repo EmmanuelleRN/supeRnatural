@@ -38,6 +38,7 @@ characters_tbl <- html_nodes(characters_page, "table")
 #### TO DO ####
 species_page <- "https://supernatural.fandom.com/wiki/Category:Species"
 species_page <- read_html(species_page)
+species_list <- html_nodes(species_page, '.category-page__member-link')
 #### To DO ####
 
 # Extract synopsis
